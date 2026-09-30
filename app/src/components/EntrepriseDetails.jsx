@@ -8,7 +8,7 @@ const fmtDate = (v) => (v instanceof Date ? v.toLocaleDateString("fr-FR") : v ? 
 function Field({ label, children, wide }) {
   return (
     <div className={wide ? "sm:col-span-2" : ""}>
-      <div className="text-xs uppercase tracking-wide text-gray-500">{label}</div>
+      <div className="text-xs uppercase tracking-wide font-semibold text-[#7B0503] ">{label}</div>
       <div className="mt-0.5 text-sm text-gray-900">
         {children || <span className="text-gray-400">—</span>}
       </div>
@@ -163,7 +163,7 @@ function EntrepriseDetails({ workbook, sheetName, fileName }) {
             </Field>
 
             <div>
-              <div className="text-xs uppercase tracking-wide text-gray-500">Civilité du PDG</div>
+              <div className="text-xs font-semibold text-[#7B0503] uppercase tracking-wide ">Civilité du PDG</div>
               <select
                 value={current.sexeValue}
                 onChange={(e) => setSexes((s) => ({ ...s, [current.rowNumber]: e.target.value }))}
@@ -196,7 +196,7 @@ function EntrepriseDetails({ workbook, sheetName, fileName }) {
             </Field>
 
             <div>
-              <div className="text-xs uppercase tracking-wide text-gray-500">
+              <div className="text-xs uppercase tracking-wide font-semibold text-[#7B0503] ">
                 Montant (DH) {current.avecRetard && <span className="text-red-600">*</span>}
               </div>
               <input
