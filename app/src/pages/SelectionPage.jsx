@@ -161,7 +161,7 @@ function SelectionPage() {
               <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
                 {rows(e).map(([label, value]) => (
                   <div key={label}>
-                    <dt className="text-xs uppercase tracking-wide text-gray-500">{label}</dt>
+                    <dt className="text-xs uppercase tracking-wide font-semibold text-[#7B0503]">{label}</dt>
                     <dd className="text-sm">
                       {value === null || value === "" || value === undefined ? (
                         <span className="text-gray-400">—</span>
