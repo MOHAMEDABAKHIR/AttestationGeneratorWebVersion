@@ -3,8 +3,8 @@ import Docxtemplater from "docxtemplater";
 import ImageModule from "docxtemplater-image-module-free";
 import { slugify } from "./signatureStore";
 
-const MAX_W = 150; // largeur max de la signature dans le Word (px)
-const MAX_H = 80;
+const MAX_W = 168.94488189; // largeur max de la signature dans le Word (px)
+const MAX_H = 75.968503937;
 
 const dataUrlToBytes = (dataUrl) => {
   const bin = atob(dataUrl.split(",")[1]);
