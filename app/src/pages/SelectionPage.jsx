@@ -125,7 +125,7 @@ function SelectionPage() {
           <button
             onClick={generate}
             disabled={!list.length || missing.length > 0 || busy}
-            className="rounded-lg bg-blue-600 px-4 py-1 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-lg bg-[#7B0503]  px-4 py-1 text-sm font-medium text-white hover:bg-[#b80704] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {busy ? "Génération…" : "Générer "}
           </button>
