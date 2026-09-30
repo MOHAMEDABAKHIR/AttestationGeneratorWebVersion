@@ -204,11 +204,11 @@ function EntrepriseDetails({ workbook, sheetName, fileName }) {
                 inputMode="decimal"
                 value={current.montantText}
                 onChange={(e) => setMontants((m) => ({ ...m, [current.rowNumber]: e.target.value }))}
-                placeholder={current.avecRetard ? "Obligatoire" : "À ne pas remplir"}
+                placeholder={current.avecRetard ? "Obligatoire" : ""}
                 disabled={!current.avecRetard}
-                className={`mt-0.5 w-40 rounded-lg border px-2 py-1 text-sm ${
-                  current.montantError ? "border-red-500 bg-white" : "border-gray-300"
-                }`}
+                className={`mt-0.5 w-40 rounded-lg border px-2 py-1 text-sm border-gray-300 ${
+                  current.montantError ? "border-red-500 bg-white" : "border-gray-300" 
+                }${!current.avecRetard ? "border-gray-300 bg-gray-300":""}`}
               />
             </div>
 

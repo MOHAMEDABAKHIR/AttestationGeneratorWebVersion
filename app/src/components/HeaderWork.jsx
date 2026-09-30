@@ -163,7 +163,7 @@ function HeaderWork() {
                 flex h-11 w-11 shrink-0
                 items-center justify-center
                 rounded-xl
-                bg-[#f8e9e8]
+                
               "
             >
               <FileSpreadsheet
@@ -317,7 +317,7 @@ function HeaderWork() {
                     flex h-12 w-12 shrink-0
                     items-center justify-center
                     rounded-xl
-                    bg-[#eaf6ef]
+                    
                   "
                 >
                   <img
