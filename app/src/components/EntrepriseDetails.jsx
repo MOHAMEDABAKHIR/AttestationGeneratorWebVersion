@@ -163,7 +163,7 @@ function EntrepriseDetails({ workbook, sheetName, fileName }) {
             </Field>
 
             <div>
-              <div className="text-xs uppercase tracking-wide text-gray-500">Sexe du PDG</div>
+              <div className="text-xs uppercase tracking-wide text-gray-500">Civilité du PDG</div>
               <select
                 value={current.sexeValue}
                 onChange={(e) => setSexes((s) => ({ ...s, [current.rowNumber]: e.target.value }))}

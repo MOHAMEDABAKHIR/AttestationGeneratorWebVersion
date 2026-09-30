@@ -126,7 +126,7 @@ export function enrichCompany(c, sexeOverride, montantOverride) {
   if (!template)
     errors.push("Template introuvable : qualité du signataire ou type d'attestation non reconnu.");
   if (!periode) errors.push("Exercice ou trimestre invalide : période impossible à calculer.");
-  if (!sexeValue) warnings.push("Sexe du PDG non renseigné.");
+  if (!sexeValue) warnings.push("Civilité du PDG non renseigné.");
 
   return { ...c, montantText, montant, avecRetard, template, periode, sexeValue, errors, warnings, montantError };
 }

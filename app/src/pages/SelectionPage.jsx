@@ -13,7 +13,7 @@ import { generateAll } from "../lib/generateAttestation";
 const rows = (e) => [
   ["Adresse", e.adresse],
   ["PDG", `${e.civilite} ${e.pdg}`.trim()],
-  ["Sexe du PDG", e.sexePdg],
+  ["Civilité du PDG", e.sexePdg],
   ["Exercice", e.exercice],
   ["Trimestre", e.trimestre],
   ["Période", e.periode?.libelle],
@@ -127,7 +127,7 @@ function SelectionPage() {
             disabled={!list.length || missing.length > 0 || busy}
             className="rounded-lg bg-blue-600 px-4 py-1 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {busy ? "Génération…" : "Générer les attestations"}
+            {busy ? "Génération…" : "Générer "}
           </button>
         </div>
       </div>
