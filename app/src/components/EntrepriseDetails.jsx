@@ -205,6 +205,7 @@ function EntrepriseDetails({ workbook, sheetName, fileName }) {
                 value={current.montantText}
                 onChange={(e) => setMontants((m) => ({ ...m, [current.rowNumber]: e.target.value }))}
                 placeholder={current.avecRetard ? "Obligatoire" : "À ne pas remplir"}
+                disabled={!current.avecRetard}
                 className={`mt-0.5 w-40 rounded-lg border px-2 py-1 text-sm ${
                   current.montantError ? "border-red-500 bg-white" : "border-gray-300"
                 }`}
