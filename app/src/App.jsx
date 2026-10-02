@@ -25,7 +25,7 @@ function App() {
           />
 
           <Route
-            path="/pdf"
+            path="/pdfextract"
             element={<PdfTestPage />}
           />
 
