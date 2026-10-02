@@ -4,6 +4,7 @@ import MainLayout from "./layouts/MainLayout";
 import HomePage from "./pages/HomePage";
 import SelectionPage from "./pages/SelectionPage";
 import WordgenerationPage from "./pages/WordgenerationPage";
+import PdfTestPage from "./pages/PdfTestPage";
 
 function App() {
   return (
@@ -21,6 +22,11 @@ function App() {
           <Route
             path="/selection"
             element={<SelectionPage />}
+          />
+
+          <Route
+            path="/pdf"
+            element={<PdfTestPage />}
           />
 
           <Route
