@@ -25,15 +25,15 @@ function App() {
             element={<SelectionPage />}
           />
           
-          <Route
+          {/* <Route
             path="/declaration"
             element={<DeclarationPage />}
-          />
+          /> */}
 
-          <Route
+          {/* <Route
             path="/configuration"
-            element={<ConfigurationPage />}
-          />
+            // element={<ConfigurationPage />}
+          /> */}
 
        
 

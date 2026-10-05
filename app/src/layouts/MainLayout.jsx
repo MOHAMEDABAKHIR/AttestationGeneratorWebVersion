@@ -123,11 +123,11 @@ function MainLayout() {
 
           <div className="my-6 border-t border-[#eceeed]" />
 
-          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9a9e9f]">
+          {/* <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9a9e9f]">
             Configuration
-          </p>
+          </p> */}
 
-          <div className="space-y-1">
+          {/* <div className="space-y-1">
             <SidebarItem to="/configuration" icon={Cog}>
               Cabinet mLExperts
             </SidebarItem>
@@ -135,7 +135,7 @@ function MainLayout() {
             <SidebarItem to="/word" icon={Settings2}>
               Modèles Word
             </SidebarItem>
-          </div>
+          </div> */}
         </nav>
 
         {/* Bottom */}

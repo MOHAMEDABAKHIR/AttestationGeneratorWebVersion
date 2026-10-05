@@ -60,6 +60,7 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
   const [pdfDrag, setPdfDrag] = useState(false);
   const [pdfError, setPdfError] = useState("");
   const [pdfInfo, setPdfInfo] = useState(null);
+  const [manualMode, setManualMode] = useState(false); // true si l'IA a échoué
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -204,6 +205,7 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
         type,
         montantText: montant > 0 ? String(montant) : "",
       }));
+      setManualMode(false); // ← IA a réussi, on n'est plus en manuel
 
       setPdfInfo({
         fileName: file.name,
@@ -216,6 +218,7 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
     } catch (err) {
       console.error(err);
       setPdfError(err.message || "Impossible de lire la déclaration.");
+      setManualMode(true); // ← bascule en mode manuel
     } finally {
       setPdfBusy(false);
       setPdfStep("");
@@ -335,6 +338,19 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
           {/* --- Suite --- */}
           {/* --- Drop déclaration PDF --- */}
           <div className="sm:col-span-2">
+            {/* Bandeau d'entête : indication + bouton bascule manuel */}
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#7B0503]">
+                Déclaration PDF (optionnelle)
+              </p>
+              <button
+                type="button"
+                onClick={() => setManualMode((m) => !m)}
+                className="text-xs text-gray-500 underline-offset-2 hover:text-[#7B0503] hover:underline"
+              >
+                {manualMode ? "Masquer la saisie manuelle" : "Saisie manuelle"}
+              </button>
+            </div>
             <div
               onDragOver={(e) => {
                 e.preventDefault();
@@ -347,8 +363,8 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
               onDrop={onPdfDrop}
               onClick={() => !pdfBusy && fileInputRef.current?.click()}
               className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed px-4 py-3 transition-all ${pdfDrag
-                  ? "border-[#7B0503] bg-[#fdf2f1]"
-                  : "border-gray-300 bg-gray-50 hover:border-[#7B0503]/50 hover:bg-gray-100"
+                ? "border-[#7B0503] bg-[#fdf2f1]"
+                : "border-gray-300 bg-gray-50 hover:border-[#7B0503]/50 hover:bg-gray-100"
                 } ${pdfBusy ? "pointer-events-none opacity-60" : ""}`}
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
@@ -406,26 +422,66 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
                 </p>
               </div>
             )}
+
+            {/* Bandeau mode manuel (visible si IA en échec OU activé par l'utilisateur) */}
+            {(manualMode || pdfError) && (
+              <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <span className="text-base leading-none">✎</span>
+                <div className="flex-1">
+                  <p className="font-semibold">
+                    Mode manuel {pdfError ? "— l'IA n'a pas pu lire le PDF" : "activé"}
+                  </p>
+                  <p className="mt-0.5 text-amber-700">
+                    Remplissez le Type et le Montant ci-dessous manuellement.
+                  </p>
+                </div>
+                {!pdfError && (
+                  <button
+                    type="button"
+                    onClick={() => setManualMode(false)}
+                    className="shrink-0 rounded-md px-2 py-0.5 text-xs font-medium text-amber-800 hover:bg-amber-100"
+                  >
+                    Masquer
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* --- Suite --- */}
-          <Field label="Type d'attestation"></Field>
+          <Field label="Type d'attestation">
+            <select
+              className={`${inputCls} ${manualMode
+                ? "border-amber-400 !bg-amber-50"
+                : ""
+                }`}
+              value={form.type}
+              onChange={set("type")}
+            >
+              <option value="">— Choisir —</option>
+              {TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </Field>
 
           <Field label="Montant (DH)">
             <input
               type="text"
               inputMode="decimal"
               className={`${inputCls} ${!preview.avecRetard
-                ? "cursor-not-allowed !bg-gray-200  text-gray-400"
-                : ""
+                  ? "cursor-not-allowed !bg-gray-200 text-gray-400"
+                  : manualMode
+                    ? "border-amber-400 !bg-amber-50"
+                    : ""
                 }`}
               value={form.montantText}
               onChange={set("montantText")}
               disabled={!preview.avecRetard}
               placeholder={
-                preview.avecRetard
-                  ? "Entrer le Montant en DH"
-                  : ""
+                preview.avecRetard ? "Entrer le Montant en DH" : ""
               }
             />
           </Field>
