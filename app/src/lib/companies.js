@@ -3,48 +3,49 @@
   const FISCAL_START_MONTH = 1;
 
   export const norm = (s) =>
-    String(s ?? "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "");
+  String(s ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")   // accents
+    .replace(/[\u200B-\u200D\uFEFF]/g, "") // zero-width + BOM
+    .replace(/[\u00A0\u202F]/g, " ")   // espaces insécables → espace normal
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");        // enlève tout sauf a-z0-9
 
   const FIELDS = [
-    ["raison", (h) => h.startsWith("raisonsociale")],
-    ["adresse", (h) => h.startsWith("adresse")],
-    [
-      "representant",
-      (h) =>
-        h.startsWith("nomdurepresentant") ||
-        h.startsWith("nomrepresentant") ||
-        h.startsWith("nomdupdg") ||
-        h.startsWith("representant"),
-    ],
-    [
-  "qualiteRepresentant",
-  (h) =>
-    // Match très large : tant que l'en-tête contient "qualite" ET "representant"
-    // (ou "pdg"), on le considère comme la qualité du représentant.
-    (h.includes("qualite") && h.includes("representant")) ||
-    (h.includes("qualite") && h.includes("pdg")) ||
-    h === "qualite" /* fallback si colonne unique "Qualité" */,
-],,
-    ["exercice", (h) => h === "exercice"], // lu mais écrasé plus bas
-    ["trimestre", (h) => h === "trimestre"], // lu mais écrasé plus bas
-    ["type", (h) => h.startsWith("typed")],
-    ["montant", (h) => h.startsWith("montant")],
-    [
-      "qualite",
-      (h) =>
-        h.startsWith("qualite") &&
-        !h.startsWith("qualitedurepresentant") &&
-        !h.startsWith("qualiterepresentant"),
-    ],
-    ["signataire", (h) => h.startsWith("nomprenom")],
-    ["lieu", (h) => h === "lieu"],
-    ["date", (h) => h.startsWith("datedesign")],
-    ["sexe", (h) => h.startsWith("sexe")],
-  ];
+  ["raison", (h) => h.startsWith("raisonsociale")],
+  ["adresse", (h) => h.startsWith("adresse")],
+  [
+    "representant",
+    (h) =>
+      h.startsWith("nomdurepresentant") ||
+      h.startsWith("nomrepresentant") ||
+      h.startsWith("nomdupdg") ||
+      h.startsWith("representant"),
+  ],
+  // ⚠️ DOIT être AVANT "qualite"
+  [
+    "qualiteRepresentant",
+    (h) =>
+      (h.includes("qualite") && h.includes("representant")) ||
+      (h.includes("qualite") && h.includes("pdg")),
+  ],
+  ["exercice", (h) => h === "exercice"],
+  ["trimestre", (h) => h === "trimestre"],
+  ["type", (h) => h.startsWith("typed")],
+  ["montant", (h) => h.startsWith("montant")],
+  // ⚠️ EXCLUT explicitement qualiteRepresentant
+  [
+    "qualite",
+    (h) =>
+      h.startsWith("qualite") &&
+      !h.includes("representant") &&
+      !h.includes("pdg"),
+  ],
+  ["signataire", (h) => h.startsWith("nomprenom")],
+  ["lieu", (h) => h === "lieu"],
+  ["date", (h) => h.startsWith("datedesign")],
+  ["sexe", (h) => h.startsWith("sexe")],
+];
 
   const pad = (n) => String(n).padStart(2, "0");
   const toISO = (d) =>
@@ -163,6 +164,14 @@
     if (aoa.length < 2) return [];
 
     const headers = aoa[0].map(norm);
+    console.log("[DEBUG] Headers normalisés :", headers);
+console.log("[DEBUG] Index de qualiteRepresentant :",
+  headers.findIndex((h) =>
+    (h.includes("qualite") && h.includes("representant")) ||
+    (h.includes("qualite") && h.includes("pdg"))
+  )
+);
+console.log("[DEBUG] Valeur ligne 2 :", aoa[1]);
     const idx = {};
     FIELDS.forEach(([key, test]) => {
       const i = headers.findIndex(test);
