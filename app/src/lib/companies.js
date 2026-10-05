@@ -21,12 +21,14 @@
         h.startsWith("representant"),
     ],
     [
-      "qualiteRepresentant",
-      (h) =>
-        h.startsWith("qualitedurepresentant") ||
-        h.startsWith("qualiterepresentant") ||
-        h.startsWith("qualitedupdg"),
-    ],
+  "qualiteRepresentant",
+  (h) =>
+    // Match très large : tant que l'en-tête contient "qualite" ET "representant"
+    // (ou "pdg"), on le considère comme la qualité du représentant.
+    (h.includes("qualite") && h.includes("representant")) ||
+    (h.includes("qualite") && h.includes("pdg")) ||
+    h === "qualite" /* fallback si colonne unique "Qualité" */,
+],,
     ["exercice", (h) => h === "exercice"], // lu mais écrasé plus bas
     ["trimestre", (h) => h === "trimestre"], // lu mais écrasé plus bas
     ["type", (h) => h.startsWith("typed")],

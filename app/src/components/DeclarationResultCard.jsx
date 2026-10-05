@@ -276,7 +276,6 @@ export default function DeclarationResultCard({
               />
             </Field>
           </div>
-
           <Field label="Nom du représentant">
             <input
               className={inputCls}
@@ -298,6 +297,7 @@ export default function DeclarationResultCard({
           </Field>
 
           <div className="sm:col-span-2">
+
             <Field label="Qualité du représentant">
               <input
                 className={inputCls}

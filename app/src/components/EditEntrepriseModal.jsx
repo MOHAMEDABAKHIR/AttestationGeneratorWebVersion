@@ -179,22 +179,13 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* --- Représentant --- */}
-          <Field label="Nom du représentant">
-            <input
-              className={inputCls}
-              value={form.representant}
-              onChange={set("representant")}
-            />
-          </Field>
+          <ReadOnlyField label="Nom du représentant">
+            {form.representant || <span className="text-red-600">—</span>}
+          </ReadOnlyField>
 
-          <Field label="Qualité du représentant">
-            <input
-              className={inputCls}
-              value={form.qualiteRepresentant}
-              onChange={set("qualiteRepresentant")}
-              placeholder="Ex. Gérant, Directeur, Président…"
-            />
-          </Field>
+          <ReadOnlyField label="Qualité du représentant">
+            {form.qualiteRepresentant || <span className="text-red-600">—</span>}
+          </ReadOnlyField>
 
           <Field label="Civilité du représentant">
             <select
@@ -209,13 +200,11 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
           </Field>
 
           <div className="sm:col-span-2">
-            <Field label="Adresse de la société">
-              <input
-                className={inputCls}
-                value={form.adresse}
-                onChange={set("adresse")}
-              />
-            </Field>
+            <div className="sm:col-span-2">
+              <ReadOnlyField label="Adresse de la société">
+                {form.adresse || <span className="text-red-600">—</span>}
+              </ReadOnlyField>
+            </div>
           </div>
 
           {/* --- Date de signature pilote Exercice/Trimestre/Période --- */}
@@ -289,43 +278,17 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
             />
           </Field>
 
-          <Field label="Qualité du signataire">
-            <select
-              className={inputCls}
-              value={form.qualite}
-              onChange={set("qualite")}
-            >
-              <option value="">— Choisir —</option>
-              {QUALITES.map((q) => (
-                <option key={q} value={q}>
-                  {q}
-                </option>
-              ))}
-            </select>
-          </Field>
+          <ReadOnlyField label="Qualité du signataire">
+            {form.qualite || <span className="text-red-600">—</span>}
+          </ReadOnlyField>
 
-          <Field label="Nom & Prénom du signataire">
-            <select
-              className={inputCls}
-              value={form.signataire}
-              onChange={set("signataire")}
-            >
-              <option value="">— Choisir —</option>
-              {SIGNATAIRES.map((sg) => (
-                <option key={sg} value={sg}>
-                  {sg}
-                </option>
-              ))}
-            </select>
-          </Field>
+          <ReadOnlyField label="Nom & Prénom du signataire">
+            {form.signataire || <span className="text-red-600">—</span>}
+          </ReadOnlyField>
 
-          <Field label="Lieu">
-            <input
-              className={inputCls}
-              value={form.lieu}
-              onChange={set("lieu")}
-            />
-          </Field>
+          <ReadOnlyField label="Lieu">
+            {form.lieu || <span className="text-gray-400">—</span>}
+          </ReadOnlyField>
 
           <div className="sm:col-span-2">
             <ReadOnlyField label="Template">
