@@ -35,15 +35,21 @@ function EntrepriseDetails({ workbook, sheetName, fileName }) {
   const [editing, setEditing] = useState(null);
 
   const companies = useMemo(() => {
-    return readCompanies(workbook, sheetName).map((c) => {
-      const ov = overrides[c.rowNumber] ?? {};
-      const base = { ...c, ...ov };
-      const sexeOverride = sexes[c.rowNumber] ?? ov.sexeValue;
-      const montantOverride =
-        montants[c.rowNumber] ?? ov.montantText;
-      return enrichCompany(base, sexeOverride, montantOverride);
-    });
-  }, [workbook, sheetName, sexes, montants, overrides]);
+  return readCompanies(workbook, sheetName).map((c) => {
+    const ov = overrides[c.rowNumber] ?? {};
+    const base = { ...c, ...ov };
+    const sexeOverride = sexes[c.rowNumber] ?? ov.sexeValue;
+    const montantOverride = montants[c.rowNumber] ?? ov.montantText;
+    // 📅 Par défaut : date du jour (ignore ce que contient Excel)
+    const dateOverride = ov.date ? new Date(ov.date) : new Date();
+    return enrichCompany(
+      base,
+      sexeOverride,
+      montantOverride,
+      dateOverride,
+    );
+  });
+}, [workbook, sheetName, sexes, montants, overrides]);
 
   useEffect(() => {
     if (!companies.length) return;
@@ -139,12 +145,18 @@ function EntrepriseDetails({ workbook, sheetName, fileName }) {
                   <span className="truncate">{c.raison}</span>
                   <span className="flex gap-1">
                     {c.errors.length > 0 && (
-                      <span title={c.errors.join("\n")} className="text-red-600">
+                      <span
+                        title={c.errors.join("\n")}
+                        className="text-red-600"
+                      >
                         ⚠
                       </span>
                     )}
                     {c.warnings.length > 0 && (
-                      <span title={c.warnings.join("\n")} className="text-amber-500">
+                      <span
+                        title={c.warnings.join("\n")}
+                        className="text-amber-500"
+                      >
                         ⚠
                       </span>
                     )}
@@ -222,21 +234,27 @@ function EntrepriseDetails({ workbook, sheetName, fileName }) {
               {current.adresse}
             </Field>
 
-            <Field label="Nom du PDG">
-              {current.sexeValue === "F"
-                ? "Madame "
-                : current.sexeValue === "H"
-                  ? "Monsieur "
-                  : ""}
-              {current.pdg}
+            <Field label="Nom du représentant">
+              {current.civilite ? `${current.civilite} ` : ""}
+              {current.representant}
             </Field>
 
-            <Field label="Civilité du PDG">
-              {current.sexeValue === "F"
-                ? "Femme"
-                : current.sexeValue === "H"
-                  ? "Homme"
-                  : <span className="text-amber-600">À renseigner</span>}
+            <Field label="Civilité du représentant">
+              {current.sexeValue === "F" ? (
+                "Femme"
+              ) : current.sexeValue === "H" ? (
+                "Homme"
+              ) : (
+                <span className="text-amber-600">À renseigner</span>
+              )}
+            </Field>
+
+            <Field label="Qualité du représentant">
+              {current.qualiteRepresentant ? (
+                String(current.qualiteRepresentant)
+              ) : (
+                <span className="text-amber-600">À renseigner</span>
+              )}
             </Field>
 
             <Field label="Exercice">{String(current.exercice)}</Field>

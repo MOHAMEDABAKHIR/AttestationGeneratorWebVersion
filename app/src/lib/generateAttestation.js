@@ -30,28 +30,33 @@ const fmtMontant = (n) =>
 function buildData(e, signature) {
   const debut = parseISO(e.periode.debut);
   const fin = parseISO(e.periode.fin);
-  const femme = e.civilite === "Madame";
   return {
-    raisonSociale: e.raisonSociale,
-    civilite: e.civilite,
-    pdg: e.pdg,
-    titrePdg: femme ? "Gérante" : "Gérant",
-    adresse: e.adresse,
-    // page de garde : "1er AVRIL AU 30 JUIN 2027"
+    raisonSociale: e.raisonSociale ?? "",
+    civilite: e.civilite ?? "",
+    // ⬇️ Nom du représentant (remplace pdg)
+    representant: e.representant ?? "",
+    // ⬇️ Qualité du représentant = titre affiché dans le Word
+    titreRepresentant: e.qualiteRepresentant ?? "",
+    adresse: e.adresse ?? "",
     jourDebut: String(debut.d),
     exposantDebut: debut.d === 1 ? "er" : "",
-    finCouverture: ` ${MOIS[debut.m - 1]} AU ${fin.d} ${MOIS[fin.m - 1]} ${fin.y}`.toUpperCase(),
-    // corps : "01/04/2027 au 30/06/2027"
+    finCouverture:
+      ` ${MOIS[debut.m - 1]} AU ${fin.d} ${MOIS[fin.m - 1]} ${fin.y}`.toUpperCase(),
     periodeCourte: `${fmtShort(debut)} au ${fmtShort(fin)}`,
     montant: fmtMontant(e.montant),
-    lieu: e.lieu,
-    dateSignature: e.dateSignature ? fmtShort(parseISO(e.dateSignature)) : "",
-    signataire: e.signataire,
+    lieu: e.lieu ?? "",
+    dateSignature: e.dateSignature
+      ? fmtShort(parseISO(e.dateSignature))
+      : "",
+    signataire: e.signataire ?? "",
     signature: {
       bytes: dataUrlToBytes(signature.dataUrl),
       ...(() => {
         const r = Math.min(MAX_W / signature.width, MAX_H / signature.height);
-        return { w: Math.round(signature.width * r), h: Math.round(signature.height * r) };
+        return {
+          w: Math.round(signature.width * r),
+          h: Math.round(signature.height * r),
+        };
       })(),
     },
   };

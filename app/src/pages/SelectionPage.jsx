@@ -12,8 +12,9 @@ import { generateAll } from "../lib/generateAttestation";
 
 const rows = (e) => [
   ["Adresse", e.adresse],
-  ["PDG", `${e.civilite} ${e.pdg}`.trim()],
-  ["Civilité du PDG", e.sexePdg],
+  ["Représentant", `${e.civilite} ${e.representant}`.trim()],
+  ["Civilité du représentant", e.sexeRepresentant],
+  ["Qualité du représentant", e.qualiteRepresentant],
   ["Exercice", e.exercice],
   ["Trimestre", e.trimestre],
   ["Période", e.periode?.libelle],
@@ -35,7 +36,8 @@ function SignatureBox({ entreprise, signature, onChange }) {
     if (!file) return;
     try {
       const sig = await fileToSignature(file);
-      if (!saveSignature(key, sig)) throw new Error("Stockage local plein ou indisponible");
+      if (!saveSignature(key, sig))
+        throw new Error("Stockage local plein ou indisponible");
       setError("");
       onChange();
     } catch (err) {
@@ -56,11 +58,18 @@ function SignatureBox({ entreprise, signature, onChange }) {
             className="h-16 rounded border border-gray-200 bg-white p-1"
           />
         ) : (
-          <span className="text-sm text-amber-700">Aucune signature enregistrée</span>
+          <span className="text-sm text-amber-700">
+            Aucune signature enregistrée
+          </span>
         )}
         <label className="cursor-pointer rounded-lg bg-[#EEEEEE] px-3 py-1 text-sm hover:bg-[#C5C1C1]">
           {signature ? "Remplacer" : "Importer la signature"}
-          <input type="file" accept="image/*" onChange={onFile} className="hidden" />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={onFile}
+            className="hidden"
+          />
         </label>
         {signature && (
           <button
@@ -76,7 +85,8 @@ function SignatureBox({ entreprise, signature, onChange }) {
       </div>
       {signature && (
         <p className="mt-1 text-xs text-gray-500">
-          Enregistrée sous « {key.replace("signature:", "")} » : réutilisée automatiquement.
+          Enregistrée sous « {key.replace("signature:", "")} » : réutilisée
+          automatiquement.
         </p>
       )}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
@@ -87,12 +97,13 @@ function SignatureBox({ entreprise, signature, onChange }) {
 function SelectionPage() {
   const data = useMemo(() => loadSelection(), []);
   const list = data?.entreprises ?? [];
-  const [, setVersion] = useState(0); // force le rafraîchissement après upload/suppression
+  const [, setVersion] = useState(0);
   const refresh = () => setVersion((v) => v + 1);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
 
-  const sigOf = (e) => loadSignature(signatureKey(e.signataire, e.qualiteSignataire));
+  const sigOf = (e) =>
+    loadSignature(signatureKey(e.signataire, e.qualiteSignataire));
   const missing = list.filter((e) => !sigOf(e));
 
   const generate = async () => {
@@ -114,54 +125,72 @@ function SelectionPage() {
           <h1 className="text-2xl font-semibold">Entreprises sélectionnées</h1>
           {data && (
             <p className="text-sm text-gray-600">
-              {list.length} entreprise(s) · {data.fichier} · feuille « {data.feuille} »
+              {list.length} entreprise(s) · {data.fichier} · feuille «{" "}
+              {data.feuille} »
             </p>
           )}
         </div>
         <div className="flex gap-2">
-          <Link to="/" className="rounded-lg bg-[#EEEEEE] px-3 py-1 text-sm hover:bg-[#C5C1C1]">
+          <Link
+            to="/"
+            className="rounded-lg bg-[#EEEEEE] px-3 py-1 text-sm hover:bg-[#C5C1C1]"
+          >
             ← Retour
           </Link>
           <button
             onClick={generate}
             disabled={!list.length || missing.length > 0 || busy}
-            className="rounded-lg bg-[#7B0503]  px-4 py-1 text-sm font-medium text-white hover:bg-[#b80704] disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-lg bg-[#7B0503] px-4 py-1 text-sm font-medium text-white hover:bg-[#b80704] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {busy ? "Génération…" : "Générer "}
+            {busy ? "Génération…" : "Générer"}
           </button>
         </div>
       </div>
 
       {missing.length > 0 && (
         <p className="mb-3 text-sm text-amber-700">
-          {missing.length} signature(s) manquante(s) : importez-les pour activer la génération.
+          {missing.length} signature(s) manquante(s) : importez-les pour activer
+          la génération.
         </p>
       )}
       {result && (
         <div className="mb-3 space-y-1 text-sm">
           {result.count > 0 && (
-            <p className="text-green-700">{result.count} attestation(s) générée(s).</p>
+            <p className="text-green-700">
+              {result.count} attestation(s) générée(s).
+            </p>
           )}
           {result.errors.map((m) => (
-            <p key={m} className="text-red-600">⚠ {m}</p>
+            <p key={m} className="text-red-600">
+              ⚠ {m}
+            </p>
           ))}
         </div>
       )}
 
       {!list.length ? (
-        <p className="text-sm text-gray-500">Aucune entreprise sélectionnée.</p>
+        <p className="text-sm text-gray-500">
+          Aucune entreprise sélectionnée.
+        </p>
       ) : (
         <div className="space-y-4">
           {list.map((e) => (
-            <article key={e.ligneExcel} className="rounded-lg border border-gray-300 p-5">
+            <article
+              key={e.ligneExcel}
+              className="rounded-lg border border-gray-300 p-5"
+            >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-lg font-semibold">{e.raisonSociale}</h2>
-                <code className="rounded bg-gray-100 px-2 py-0.5 text-xs">{e.template}</code>
+                <code className="rounded bg-gray-100 px-2 py-0.5 text-xs">
+                  {e.template}
+                </code>
               </div>
               <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
                 {rows(e).map(([label, value]) => (
                   <div key={label}>
-                    <dt className="text-xs uppercase tracking-wide font-semibold text-[#7B0503]">{label}</dt>
+                    <dt className="text-xs uppercase tracking-wide font-semibold text-[#7B0503]">
+                      {label}
+                    </dt>
                     <dd className="text-sm">
                       {value === null || value === "" || value === undefined ? (
                         <span className="text-gray-400">—</span>
@@ -172,7 +201,11 @@ function SelectionPage() {
                   </div>
                 ))}
               </dl>
-              <SignatureBox entreprise={e} signature={sigOf(e)} onChange={refresh} />
+              <SignatureBox
+                entreprise={e}
+                signature={sigOf(e)}
+                onChange={refresh}
+              />
             </article>
           ))}
         </div>

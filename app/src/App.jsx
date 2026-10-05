@@ -4,7 +4,7 @@ import MainLayout from "./layouts/MainLayout";
 import HomePage from "./pages/HomePage";
 import SelectionPage from "./pages/SelectionPage";
 import WordgenerationPage from "./pages/WordgenerationPage";
-import PdfTestPage from "./pages/PdfTestPage";
+
 
 function App() {
   return (
@@ -24,10 +24,7 @@ function App() {
             element={<SelectionPage />}
           />
 
-          <Route
-            path="/pdfextract"
-            element={<PdfTestPage />}
-          />
+       
 
           <Route
             path="/word"

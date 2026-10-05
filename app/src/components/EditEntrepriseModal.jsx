@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { enrichCompany } from "../lib/companies";
 
-const ANNEES = Array.from({ length: 16 }, (_, i) => 2020 + i);
-const TRIMESTRES = ["T1", "T2", "T3", "T4"];
 const TYPES = ["Sans retard", "Avec retard"];
 const QUALITES = ["Expert-comptable", "Commissaire aux comptes"];
 const SIGNATAIRES = ["Mehdi LAHLOU", "Mohamed Ali"];
@@ -42,10 +40,9 @@ function ReadOnlyField({ label, children }) {
 
 function EditEntrepriseModal({ company, onClose, onSave }) {
   const [form, setForm] = useState({
-    pdg: "",
+    representant: "",
+    qualiteRepresentant: "",
     adresse: "",
-    exercice: "",
-    trimestre: "",
     type: "",
     montantText: "",
     qualite: "",
@@ -58,18 +55,16 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
 
   useEffect(() => {
     if (!company) return;
-    const trimestreRaw = String(company.trimestre ?? "").replace(/\D/g, "");
     setForm({
-      pdg: company.pdg ?? "",
+      representant: company.representant ?? "",
+      qualiteRepresentant: company.qualiteRepresentant ?? "",
       adresse: company.adresse ?? "",
-      exercice: String(company.exercice ?? ""),
-      trimestre: trimestreRaw ? `T${trimestreRaw}` : "",
       type: company.type ?? "",
       montantText: company.montantText ?? "",
       qualite: company.qualite ?? "",
       lieu: company.lieu ?? "",
       signataire: company.signataire ?? "",
-      // Date de signature = toujours aujourd'hui (ignore Excel)
+      // Date de signature : par défaut aujourd'hui
       date: toInputDate(new Date()),
       sexeValue: company.sexeValue ?? "",
     });
@@ -79,52 +74,75 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
   const set = (key) => (e) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  // Calcul temps réel : Période + Template
+  // Recalcul en temps réel de Exercice / Trimestre / Période / Template
   const preview = useMemo(() => {
-    if (!company) return { periode: null, template: null, avecRetard: false };
-    const trimestreNum = form.trimestre.replace(/\D/g, "");
+    if (!company) {
+      return {
+        exercice: "",
+        trimestre: "",
+        periode: null,
+        template: null,
+        avecRetard: false,
+        dateError: "",
+      };
+    }
     const draft = {
       ...company,
-      pdg: form.pdg,
+      representant: form.representant,
+      qualiteRepresentant: form.qualiteRepresentant,
       adresse: form.adresse,
-      exercice: form.exercice,
-      trimestre: trimestreNum,
       type: form.type,
       qualite: form.qualite,
       signataire: form.signataire,
       lieu: form.lieu,
     };
-    const enriched = enrichCompany(draft, form.sexeValue, form.montantText);
+    const dateForCalc = form.date ? new Date(form.date) : null;
+    const enriched = enrichCompany(
+      draft,
+      form.sexeValue,
+      form.montantText,
+      dateForCalc,
+    );
+    const dateError =
+      enriched.errors.find(
+        (m) =>
+          m.includes("date de signature doit") ||
+          m.includes("Date de signature"),
+      ) ?? "";
     return {
+      exercice: enriched.exercice,
+      trimestre: enriched.trimestre,
       periode: enriched.periode,
       template: enriched.template,
       avecRetard: enriched.avecRetard,
+      dateError,
     };
   }, [company, form]);
 
   const submit = (e) => {
     e.preventDefault();
-    if (!form.pdg.trim()) return setError("Le nom du PDG est obligatoire.");
+    if (!form.representant.trim())
+      return setError("Le nom du représentant est obligatoire.");
+    if (!form.qualiteRepresentant.trim())
+      return setError("La qualité du représentant est obligatoire.");
     if (!form.adresse.trim()) return setError("L'adresse est obligatoire.");
-    if (!form.exercice) return setError("Veuillez choisir un exercice.");
-    if (!form.trimestre) return setError("Veuillez choisir un trimestre.");
     if (!form.type) return setError("Veuillez choisir un type d'attestation.");
     if (!form.qualite)
       return setError("Veuillez choisir une qualité de signataire.");
     if (!form.signataire) return setError("Veuillez choisir un signataire.");
     if (!form.date) return setError("Veuillez choisir une date de signature.");
+    if (preview.dateError) return setError(preview.dateError);
 
     onSave({
-      pdg: form.pdg.trim(),
+      representant: form.representant.trim(),
+      qualiteRepresentant: form.qualiteRepresentant.trim(),
       adresse: form.adresse.trim(),
-      exercice: Number(form.exercice),
-      trimestre: form.trimestre.replace(/\D/g, ""), // "T1" -> "1"
       type: form.type,
       montantText: form.montantText,
       qualite: form.qualite,
       lieu: form.lieu.trim(),
       signataire: form.signataire,
-      date: form.date,
+      date: form.date, // "YYYY-MM-DD"
       sexeValue: form.sexeValue,
     });
   };
@@ -160,13 +178,25 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {/* --- Modifiable --- */}
-
-          <Field label="Nom du PDG">
-            <input className={inputCls} value={form.pdg} onChange={set("pdg")} />
+          {/* --- Représentant --- */}
+          <Field label="Nom du représentant">
+            <input
+              className={inputCls}
+              value={form.representant}
+              onChange={set("representant")}
+            />
           </Field>
 
-          <Field label="Civilité du PDG">
+          <Field label="Qualité du représentant">
+            <input
+              className={inputCls}
+              value={form.qualiteRepresentant}
+              onChange={set("qualiteRepresentant")}
+              placeholder="Ex. Gérant, Directeur, Président…"
+            />
+          </Field>
+
+          <Field label="Civilité du représentant">
             <select
               className={inputCls}
               value={form.sexeValue}
@@ -188,50 +218,47 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
             </Field>
           </div>
 
-          <Field label="Exercice">
-            <select
+          {/* --- Date de signature pilote Exercice/Trimestre/Période --- */}
+          <Field label="Date de signature">
+            <input
+              type="date"
               className={inputCls}
-              value={form.exercice}
-              onChange={set("exercice")}
-            >
-              <option value="">— Choisir —</option>
-              {ANNEES.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
+              value={form.date}
+              onChange={set("date")}
+            />
           </Field>
 
-          <Field label="Trimestre">
-            <select
-              className={inputCls}
-              value={form.trimestre}
-              onChange={set("trimestre")}
-            >
-              <option value="">— Choisir —</option>
-              {TRIMESTRES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </Field>
+          <ReadOnlyField label="Exercice">
+            {preview.exercice || (
+              <span className="text-red-600">—</span>
+            )}
+          </ReadOnlyField>
 
-          {/* --- Lecture seule (calculée) --- */}
+          <ReadOnlyField label="Trimestre">
+            {preview.trimestre ? (
+              `T${preview.trimestre}`
+            ) : (
+              <span className="text-red-600">—</span>
+            )}
+          </ReadOnlyField>
 
           <div className="sm:col-span-2">
             <ReadOnlyField label="Période du trimestre">
               {preview.periode?.libelle ?? (
                 <span className="text-red-600">
-                  Exercice ou trimestre invalide
+                  {preview.dateError || "En attente d'une date valide"}
                 </span>
               )}
             </ReadOnlyField>
           </div>
 
-          {/* --- Modifiable --- */}
+          {preview.dateError && (
+            <div className="sm:col-span-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+              ⚠ {preview.dateError}
+            </div>
+          )}
 
+          {/* --- Suite --- */}
           <Field label="Type d'attestation">
             <select
               className={inputCls}
@@ -299,17 +326,6 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
               onChange={set("lieu")}
             />
           </Field>
-
-          <Field label="Date de signature">
-            <input
-              type="date"
-              className={inputCls}
-              value={form.date}
-              onChange={set("date")}
-            />
-          </Field>
-
-          {/* --- Lecture seule (calculée) --- */}
 
           <div className="sm:col-span-2">
             <ReadOnlyField label="Template">
