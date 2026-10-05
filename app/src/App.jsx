@@ -4,7 +4,8 @@ import MainLayout from "./layouts/MainLayout";
 import HomePage from "./pages/HomePage";
 import SelectionPage from "./pages/SelectionPage";
 import WordgenerationPage from "./pages/WordgenerationPage";
-
+import DeclarationPage from "./pages/DeclarationPage";
+import ConfigurationPage from "./pages/ConfigurationPage";
 
 function App() {
   return (
@@ -22,6 +23,16 @@ function App() {
           <Route
             path="/selection"
             element={<SelectionPage />}
+          />
+          
+          <Route
+            path="/declaration"
+            element={<DeclarationPage />}
+          />
+
+          <Route
+            path="/configuration"
+            element={<ConfigurationPage />}
           />
 
        

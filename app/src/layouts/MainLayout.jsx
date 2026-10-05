@@ -4,6 +4,8 @@ import {
   FileCheck2,
   Settings2,
   ChevronRight,
+  FileText,       // <-- nouveau
+  Cog,            // <-- nouveau (ou Sliders pour la config)
 } from "lucide-react";
 
 import logomL from "../assets/logomL.png";
@@ -18,10 +20,9 @@ function SidebarItem({ to, icon: Icon, children, end = false }) {
         `
         group flex items-center gap-3 rounded-xl px-3 py-2.5
         text-sm font-medium transition-all
-        ${
-          isActive
-            ? "bg-[#7B0503] text-white shadow-sm"
-            : "text-[#646a6b] hover:bg-[#f0f1f0] hover:text-[#252728]"
+        ${isActive
+          ? "bg-[#7B0503] text-white shadow-sm"
+          : "text-[#646a6b] hover:bg-[#f0f1f0] hover:text-[#252728]"
         }
         `
       }
@@ -95,7 +96,7 @@ function MainLayout() {
 
         <nav className="flex-1 px-4">
           <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9a9e9f]">
-            Workflow
+            Workflow Excel
           </p>
 
           <div className="space-y-1">
@@ -111,10 +112,26 @@ function MainLayout() {
           <div className="my-6 border-t border-[#eceeed]" />
 
           <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9a9e9f]">
+            Workflow Déclaration
+          </p>
+
+          <div className="space-y-1">
+            <SidebarItem to="/declaration" icon={FileText}>
+              Import Déclaration
+            </SidebarItem>
+          </div>
+
+          <div className="my-6 border-t border-[#eceeed]" />
+
+          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9a9e9f]">
             Configuration
           </p>
 
           <div className="space-y-1">
+            <SidebarItem to="/configuration" icon={Cog}>
+              Cabinet mLExperts
+            </SidebarItem>
+
             <SidebarItem to="/word" icon={Settings2}>
               Modèles Word
             </SidebarItem>
