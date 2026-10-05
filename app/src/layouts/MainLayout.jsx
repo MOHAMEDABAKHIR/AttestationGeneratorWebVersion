@@ -111,17 +111,17 @@ function MainLayout() {
 
           <div className="my-6 border-t border-[#eceeed]" />
 
-          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9a9e9f]">
+          {/* <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9a9e9f]">
             Workflow Déclaration
-          </p>
+          </p> */}
 
-          <div className="space-y-1">
+          {/* <div className="space-y-1">
             <SidebarItem to="/declaration" icon={FileText}>
               Import Déclaration
             </SidebarItem>
           </div>
 
-          <div className="my-6 border-t border-[#eceeed]" />
+          <div className="my-6 border-t border-[#eceeed]" /> */}
 
           {/* <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9a9e9f]">
             Configuration
