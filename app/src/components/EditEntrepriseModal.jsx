@@ -187,17 +187,17 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
             {form.qualiteRepresentant || <span className="text-red-600">—</span>}
           </ReadOnlyField>
 
-          <Field label="Civilité du représentant">
-            <select
-              className={inputCls}
-              value={form.sexeValue}
-              onChange={set("sexeValue")}
-            >
-              <option value="">À renseigner</option>
-              <option value="H">Homme</option>
-              <option value="F">Femme</option>
-            </select>
-          </Field>
+          <ReadOnlyField label="Civilité du représentant">
+            {form.sexeValue === "F" ? (
+              "Femme"
+            ) : form.sexeValue === "H" ? (
+              "Homme"
+            ) : (
+              <span className="text-amber-600">
+                Non renseignée dans Excel (colonne « Civilité du représentant »)
+              </span>
+            )}
+          </ReadOnlyField>
 
           <div className="sm:col-span-2">
             <div className="sm:col-span-2">
