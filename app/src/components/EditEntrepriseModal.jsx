@@ -3,8 +3,9 @@ import { X } from "lucide-react";
 import { enrichCompany } from "../lib/companies";
 
 const TYPES = ["Sans retard", "Avec retard"];
-const QUALITES = ["Expert-comptable", "Commissaire aux comptes"];
-const SIGNATAIRES = ["Mehdi LAHLOU", "Mohamed Ali"];
+import { useRef } from "react";
+import { Upload, Loader2, FileText, AlertCircle as AlertCircleIcon } from "lucide-react";
+import { extractDeclarationWithGemini } from "../lib/geminiClient2";
 
 const toInputDate = (v) => {
   if (!v) return "";
@@ -52,6 +53,14 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
     sexeValue: "",
   });
   const [error, setError] = useState("");
+
+  // 📄 Drop déclaration PDF
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfStep, setPdfStep] = useState("");
+  const [pdfDrag, setPdfDrag] = useState(false);
+  const [pdfError, setPdfError] = useState("");
+  const [pdfInfo, setPdfInfo] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!company) return;
@@ -160,6 +169,72 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
   const inputCls =
     "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[#7B0503] focus:outline-none";
 
+  const processPdf = async (file) => {
+    if (!file) return;
+    if (file.type !== "application/pdf" && !/\.pdf$/i.test(file.name)) {
+      setPdfError("Veuillez sélectionner un fichier PDF.");
+      return;
+    }
+
+    setPdfError("");
+    setPdfInfo(null);
+    setPdfBusy(true);
+    setPdfStep("Envoi à Gemini…");
+
+    try {
+      const expected = company?.raison?.trim() ?? "";
+      const result = await extractDeclarationWithGemini(file, {
+        onStep: (s) => setPdfStep(s),
+        expectedCompany: expected,
+      });
+
+      // Vérification que la déclaration correspond à l'entreprise attendue
+      if (result.match === false) {
+        throw new Error(
+          `La déclaration ne correspond pas à cette entreprise. ` +
+          `Attendue : "${expected}". Trouvée : "${result.raisonSociale ?? "—"}".`,
+        );
+      }
+
+      const montant = result.montantNonPayeTTC ?? 0;
+      const type = montant > 0 ? "Avec retard" : "Sans retard";
+
+      setForm((f) => ({
+        ...f,
+        type,
+        montantText: montant > 0 ? String(montant) : "",
+      }));
+
+      setPdfInfo({
+        fileName: file.name,
+        raisonSociale: result.raisonSociale,
+        adresse: result.adresse,
+        montant,
+        type,
+        model: result.model,
+      });
+    } catch (err) {
+      console.error(err);
+      setPdfError(err.message || "Impossible de lire la déclaration.");
+    } finally {
+      setPdfBusy(false);
+      setPdfStep("");
+    }
+  };
+
+  const onPdfDrop = async (e) => {
+    e.preventDefault();
+    setPdfDrag(false);
+    const f = e.dataTransfer.files?.[0];
+    await processPdf(f);
+  };
+
+  const onPdfChange = async (e) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    await processPdf(f);
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
@@ -258,28 +333,91 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
           )}
 
           {/* --- Suite --- */}
-          <Field label="Type d'attestation">
-            <select
-              className={inputCls}
-              value={form.type}
-              onChange={set("type")}
+          {/* --- Drop déclaration PDF --- */}
+          <div className="sm:col-span-2">
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setPdfDrag(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                setPdfDrag(false);
+              }}
+              onDrop={onPdfDrop}
+              onClick={() => !pdfBusy && fileInputRef.current?.click()}
+              className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed px-4 py-3 transition-all ${pdfDrag
+                  ? "border-[#7B0503] bg-[#fdf2f1]"
+                  : "border-gray-300 bg-gray-50 hover:border-[#7B0503]/50 hover:bg-gray-100"
+                } ${pdfBusy ? "pointer-events-none opacity-60" : ""}`}
             >
-              <option value="">— Choisir —</option>
-              {TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </Field>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+                {pdfBusy ? (
+                  <Loader2 size={18} className="animate-spin text-[#7B0503]" />
+                ) : (
+                  <Upload size={18} className="text-[#7B0503]" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#303334]">
+                  {pdfBusy
+                    ? pdfStep || "Analyse en cours…"
+                    : "Déposer la déclaration PDF ici"}
+                </p>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  {pdfBusy
+                    ? "Gemini lit le document…"
+                    : "Auto-remplit le Type et le Montant selon la déclaration"}
+                </p>
+              </div>
+              {!pdfBusy && (
+                <FileText size={16} className="shrink-0 text-gray-400" />
+              )}
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,application/pdf"
+              onChange={onPdfChange}
+              className="hidden"
+            />
+
+            {pdfError && (
+              <p className="mt-2 flex items-start gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
+                <AlertCircleIcon size={14} className="mt-0.5 shrink-0" />
+                {pdfError}
+              </p>
+            )}
+
+            {pdfInfo && !pdfError && (
+              <div className="mt-2 rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-xs text-green-800">
+                <p className="font-semibold">
+                  ✓ Déclaration lue — {pdfInfo.raisonSociale}
+                </p>
+                <p className="mt-0.5 text-green-700">
+                  Montant : {pdfInfo.montant.toLocaleString("fr-FR")} DH ·{" "}
+                  {pdfInfo.type}
+                  {pdfInfo.model && (
+                    <span className="ml-2 text-green-600">
+                      ({pdfInfo.model})
+                    </span>
+                  )}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* --- Suite --- */}
+          <Field label="Type d'attestation"></Field>
 
           <Field label="Montant (DH)">
             <input
               type="text"
               inputMode="decimal"
               className={`${inputCls} ${!preview.avecRetard
-                  ? "cursor-not-allowed !bg-gray-200  text-gray-400"
-                  : ""
+                ? "cursor-not-allowed !bg-gray-200  text-gray-400"
+                : ""
                 }`}
               value={form.montantText}
               onChange={set("montantText")}

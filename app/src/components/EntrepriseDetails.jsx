@@ -5,7 +5,6 @@ import { enrichCompany, readCompanies, toRecord } from "../lib/companies";
 import { saveSelection } from "../lib/selectionStore";
 import EditEntrepriseModal from "./EditEntrepriseModal";
 
-
 const fmtDate = (v) => {
   if (!v) return "";
   const d = v instanceof Date ? v : new Date(v);
