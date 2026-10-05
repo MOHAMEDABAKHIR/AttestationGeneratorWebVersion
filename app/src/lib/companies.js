@@ -201,17 +201,20 @@ export function readCompanies(workbook, sheetName) {
 // depuis la date de signature (les valeurs Excel sont ignorées)
 // ---------------------------------------------------------------
 export function enrichCompany(c, sexeOverride, montantOverride, dateOverride) {
-  const montantText =
-    montantOverride ?? (c.montant === "" ? "" : String(c.montant));
+  const t0 = norm(c.type);
+  const sansRetard0 = t0.includes("sansretard");
+  const montantText = sansRetard0
+    ? ""
+    : montantOverride ?? (c.montant === "" ? "" : String(c.montant));
   const montant = parseMontant(montantText);
   const t = norm(c.type);
   const avecRetard = t.includes("avecretard");
   const sansRetard = t.includes("sansretard");
   const template = getTemplate(c.qualite, c.type);
   const sexeValue =
-  sexeOverride ??
-  sexeFromExcel(c.civiliteRepresentant) ??
-  sexeFromExcel(c.sexe);
+    sexeOverride ??
+    sexeFromExcel(c.civiliteRepresentant) ??
+    sexeFromExcel(c.sexe);
 
   const civilite =
     sexeValue === "F" ? "Madame" : sexeValue === "H" ? "Monsieur" : "";
@@ -238,10 +241,6 @@ export function enrichCompany(c, sexeOverride, montantOverride, dateOverride) {
   if (avecRetard && !(montant > 0)) {
     montantError = true;
     errors.push("Attestation « Avec retard » : le montant est obligatoire.");
-  }
-  if (sansRetard && montantText.trim() !== "" && montant !== 0) {
-    montantError = true;
-    errors.push("Attestation « Sans retard » : le montant doit rester vide.");
   }
   if (!template)
     errors.push(

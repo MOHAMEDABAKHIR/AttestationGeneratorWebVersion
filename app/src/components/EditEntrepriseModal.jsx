@@ -71,8 +71,17 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
     setError("");
   }, [company]);
 
-  const set = (key) => (e) =>
-    setForm((f) => ({ ...f, [key]: e.target.value }));
+  const set = (key) => (e) => {
+    const value = e.target.value;
+    setForm((f) => {
+      const next = { ...f, [key]: value };
+      // Si on change le type et qu'on passe à "Sans retard", on vide le montant
+      if (key === "type" && value === "Sans retard") {
+        next.montantText = "";
+      }
+      return next;
+    });
+  };
 
   // Recalcul en temps réel de Exercice / Trimestre / Période / Template
   const preview = useMemo(() => {
@@ -138,11 +147,12 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
       qualiteRepresentant: form.qualiteRepresentant.trim(),
       adresse: form.adresse.trim(),
       type: form.type,
-      montantText: form.montantText,
+      // ⚠️ Forcer le montant à vide si type = "Sans retard"
+      montantText: preview.avecRetard ? form.montantText : "",
       qualite: form.qualite,
       lieu: form.lieu.trim(),
       signataire: form.signataire,
-      date: form.date, // "YYYY-MM-DD"
+      date: form.date,
       sexeValue: form.sexeValue,
     });
   };
@@ -267,13 +277,17 @@ function EditEntrepriseModal({ company, onClose, onSave }) {
             <input
               type="text"
               inputMode="decimal"
-              className={inputCls}
+              className={`${inputCls} ${!preview.avecRetard
+                  ? "cursor-not-allowed !bg-gray-200  text-gray-400"
+                  : ""
+                }`}
               value={form.montantText}
               onChange={set("montantText")}
+              disabled={!preview.avecRetard}
               placeholder={
                 preview.avecRetard
-                  ? "Obligatoire si « Avec retard »"
-                  : "Non requis pour « Sans retard »"
+                  ? "Entrer le Montant en DH"
+                  : ""
               }
             />
           </Field>
