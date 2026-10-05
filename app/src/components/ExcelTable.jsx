@@ -82,7 +82,7 @@ function ExcelTable({ workbook, sheetName }) {
         .includes(String(value).toLowerCase()),
     columnResizeMode: "onChange",
     enableColumnResizing: true,
-    initialState: { pagination: { pageSize: 25 } },
+    initialState: { pagination: { pageSize:5 } },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -255,7 +255,7 @@ function ExcelTable({ workbook, sheetName }) {
             onChange={(e) => table.setPageSize(Number(e.target.value))}
             className="rounded-lg bg-[#EEEEEE] px-2 py-1"
           >
-            {[10, 25, 50, 100, 500].map((n) => (
+            {[5,10, 25, 50, 100, 500].map((n) => (
               <option key={n} value={n}>
                 {n}
               </option>
