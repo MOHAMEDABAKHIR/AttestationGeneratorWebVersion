@@ -97,6 +97,12 @@ export async function generateDocx(e, signature) {
 export const attestationFileName = (e) =>
   `Attestation_${slugify(e.raisonSociale)}_${e.exercice}-${slugify(e.trimestre)}.docx`;
 
+export const attestationPdfFileName = (e) =>
+  `Attestation_${slugify(e.raisonSociale)}_${e.exercice}-${slugify(e.trimestre)}.pdf`;
+
+export const attestationDeclarationPdfFileName = (e) =>
+  `Attestation_Declaration_${slugify(e.raisonSociale)}_${e.exercice}-${slugify(e.trimestre)}.pdf`;
+
 export function downloadBlob(blob, name) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

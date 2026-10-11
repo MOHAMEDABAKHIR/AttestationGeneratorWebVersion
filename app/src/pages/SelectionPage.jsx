@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { FileDown, FileText, FilePlus2 } from "lucide-react";
+
 import { loadSelection } from "../lib/selectionStore";
 import {
   signatureKey,
@@ -8,7 +10,14 @@ import {
   deleteSignature,
   fileToSignature,
 } from "../lib/signatureStore";
-import { generateAll } from "../lib/generateAttestation";
+import {
+  generateAll,
+  generateDocx,
+  downloadBlob,
+  attestationPdfFileName,
+  attestationDeclarationPdfFileName,
+} from "../lib/generateAttestation";
+import { docxBlobToPdfBlob, mergePdfBlobs } from "../lib/pdfExport";
 
 const rows = (e) => [
   ["Adresse", e.adresse],
@@ -101,6 +110,70 @@ function SelectionPage() {
   const refresh = () => setVersion((v) => v + 1);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
+
+    // Export PDF : par ligne (état "pdf" | "merge")
+  const [pdfBusy, setPdfBusy] = useState({});
+  const [pdfError, setPdfError] = useState("");
+  const pendingMergeRef = useRef(null); // entreprise en attente de sa déclaration
+  const declarationInputRef = useRef(null);
+
+  const setBusyFor = (rowId, value) =>
+    setPdfBusy((prev) => {
+      const n = { ...prev };
+      if (value) n[rowId] = value;
+      else delete n[rowId];
+      return n;
+    });
+
+  /** Génère le Word, le convertit en PDF, et télécharge. */
+  const exportPdf = async (e) => {
+    setPdfError("");
+    setBusyFor(e.ligneExcel, "pdf");
+    try {
+      const docxBlob = await generateDocx(e, sigOf(e));
+      const pdfBlob = await docxBlobToPdfBlob(docxBlob);
+      downloadBlob(pdfBlob, attestationPdfFileName(e));
+    } catch (err) {
+      console.error(err);
+      setPdfError(`${e.raisonSociale} : ${err.message}`);
+    } finally {
+      setBusyFor(e.ligneExcel, null);
+    }
+  };
+
+  /** Ouvre le sélecteur de fichier pour récupérer la déclaration PDF. */
+  const requestMergeWithDeclaration = (e) => {
+    setPdfError("");
+    pendingMergeRef.current = e;
+    declarationInputRef.current?.click();
+  };
+
+  /** Une fois la déclaration choisie, on fusionne. */
+  const onDeclarationPicked = async (ev) => {
+    const file = ev.target.files?.[0];
+    ev.target.value = "";
+    const e = pendingMergeRef.current;
+    pendingMergeRef.current = null;
+    if (!file || !e) return;
+
+    if (file.type !== "application/pdf" && !/\.pdf$/i.test(file.name)) {
+      setPdfError("Veuillez sélectionner un fichier PDF pour la déclaration.");
+      return;
+    }
+
+    setBusyFor(e.ligneExcel, "merge");
+    try {
+      const docxBlob = await generateDocx(e, sigOf(e));
+      const attestationPdf = await docxBlobToPdfBlob(docxBlob);
+      const merged = await mergePdfBlobs([attestationPdf, file]);
+      downloadBlob(merged, attestationDeclarationPdfFileName(e));
+    } catch (err) {
+      console.error(err);
+      setPdfError(`${e.raisonSociale} : ${err.message}`);
+    } finally {
+      setBusyFor(e.ligneExcel, null);
+    }
+  };
 
   const sigOf = (e) =>
     loadSignature(signatureKey(e.signataire, e.qualiteSignataire));
@@ -201,6 +274,39 @@ function SelectionPage() {
                   </div>
                 ))}
               </dl>
+                            {/* Actions PDF */}
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => exportPdf(e)}
+                  disabled={!!pdfBusy[e.ligneExcel]}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#EEEEEE] px-3 py-1.5 text-sm hover:bg-[#C5C1C1] disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Exporter l'attestation en PDF"
+                >
+                  <FileDown size={14} />
+                  {pdfBusy[e.ligneExcel] === "pdf"
+                    ? "Conversion…"
+                    : "Exporter PDF"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => requestMergeWithDeclaration(e)}
+                  disabled={!!pdfBusy[e.ligneExcel]}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#7B0503] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#b80704] disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Fusionner l'attestation PDF avec la déclaration PDF"
+                >
+                  <FilePlus2 size={14} />
+                  {pdfBusy[e.ligneExcel] === "merge"
+                    ? "Fusion…"
+                    : "PDF + Déclaration"}
+                </button>
+
+                <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                  <FileText size={12} />
+                  Word inchangé (bouton « Générer » en haut)
+                </span>
+              </div>
               <SignatureBox
                 entreprise={e}
                 signature={sigOf(e)}
@@ -209,6 +315,20 @@ function SelectionPage() {
             </article>
           ))}
         </div>
+      )}
+            {/* Input caché pour la déclaration à fusionner */}
+      <input
+        ref={declarationInputRef}
+        type="file"
+        accept=".pdf,application/pdf"
+        onChange={onDeclarationPicked}
+        className="hidden"
+      />
+
+      {pdfError && (
+        <p className="mt-3 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+          ⚠ {pdfError}
+        </p>
       )}
     </div>
   );
