@@ -10,6 +10,7 @@ import {
 
 import logomL from "../assets/logomL.png";
 import videopin from "../assets/From KlickPin.mp4";
+import UserMenu from "../components/UserMenu"; // ← NOUVEAU
 
 function SidebarItem({ to, icon: Icon, children, end = false }) {
   return (
@@ -163,6 +164,7 @@ function MainLayout() {
             sticky top-0 z-30
             flex h-[72px]
             items-center justify-between
+            gap-4
             border-b border-[#e3e5e4]
             bg-white/95
             px-6
@@ -180,15 +182,20 @@ function MainLayout() {
             </p>
           </div>
 
-          <div className="w-20 overflow-hidden rounded-full">
-            <video
-              src={videopin}
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="h-full w-full scale-170 object-cover"
-            />
+          {/* ⬇️ NOUVEAU : zone droite = UserMenu + animation ⬇️ */}
+          <div className="flex items-center gap-4">
+            <UserMenu />
+
+            <div className="w-20 overflow-hidden rounded-full">
+              <video
+                src={videopin}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="h-full w-full scale-170 object-cover"
+              />
+            </div>
           </div>
         </header>
 

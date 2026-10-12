@@ -4,15 +4,14 @@ import {
   Loader2, AlertCircle, Mail, Lock, User, Building2, Briefcase, CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import { supabase } from "../lib/supabase";
-
-const norm = (s) =>
-  String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
 function Field({ icon: Icon, ...props }) {
   return (
     <div className="relative">
-      <Icon size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      <Icon
+        size={16}
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+      />
       <input
         {...props}
         className="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 py-2.5 text-sm focus:border-[#7B0503] focus:outline-none"
@@ -26,8 +25,12 @@ export default function SignupPage() {
   const { signUp } = useAuth();
 
   const [form, setForm] = useState({
-    email: "", username: "", entreprise: "", fonction: "",
-    password: "", confirm: "",
+    email: "",
+    username: "",
+    entreprise: "",
+    fonction: "",
+    password: "",
+    confirm: "",
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -47,8 +50,10 @@ export default function SignupPage() {
     if (!form.entreprise.trim()) return "Le nom de l'entreprise est obligatoire.";
     if (!form.fonction.trim()) return "La fonction est obligatoire.";
     if (!form.password) return "Le mot de passe est obligatoire.";
-    if (form.password.length < 8) return "Le mot de passe doit faire au moins 8 caractères.";
-    if (form.password !== form.confirm) return "Les mots de passe ne correspondent pas.";
+    if (form.password.length < 8)
+      return "Le mot de passe doit faire au moins 8 caractères.";
+    if (form.password !== form.confirm)
+      return "Les mots de passe ne correspondent pas.";
     return null;
   };
 
@@ -60,15 +65,6 @@ export default function SignupPage() {
 
     setBusy(true);
     try {
-      // Vérifie l'unicité du username avant l'inscription
-      const { data: available, error: rpcErr } = await supabase
-        .rpc("username_available", { p_username: form.username.trim() });
-      if (rpcErr) throw rpcErr;
-      if (available === false) {
-        setError("Ce nom d'utilisateur est déjà pris. Choisis-en un autre.");
-        return;
-      }
-
       await signUp({
         email: form.email.trim(),
         password: form.password,
@@ -78,12 +74,17 @@ export default function SignupPage() {
       });
 
       setDone(true);
-      // Petit délai avant redirection vers /pending
-      setTimeout(() => navigate("/pending", { replace: true }), 1800);
+      setTimeout(() => navigate("/pending", { replace: true }), 1500);
     } catch (err) {
       const msg = String(err?.message ?? err);
-      if (/already registered|already exists/i.test(msg)) {
+
+      if (/already registered|already exists|User already registered/i.test(msg)) {
         setError("Un compte existe déjà avec cet email.");
+      } else if (
+        err?.code === "23505" ||
+        /duplicate key|unique constraint/i.test(msg)
+      ) {
+        setError("Ce nom d'utilisateur est déjà pris. Choisis-en un autre.");
       } else {
         setError(msg);
       }
@@ -101,8 +102,8 @@ export default function SignupPage() {
           </div>
           <h1 className="text-xl font-semibold">Compte créé</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Votre demande a bien été enregistrée. Un administrateur doit valider
-            votre accès avant que vous puissiez vous connecter.
+            Votre demande a bien été enregistrée. Un administrateur doit
+            valider votre accès avant que vous puissiez vous connecter.
           </p>
           <button
             onClick={() => navigate("/pending", { replace: true })}
@@ -129,19 +130,68 @@ export default function SignupPage() {
         </div>
 
         <form onSubmit={submit} className="space-y-3.5">
-          <Field icon={Mail} type="email" placeholder="Adresse email" value={form.email} onChange={set("email")} disabled={busy} autoComplete="email" />
-          <Field icon={User} type="text" placeholder="Nom d'utilisateur (ex: m.lahlou)" value={form.username} onChange={set("username")} disabled={busy} autoComplete="username" />
-          <Field icon={Building2} type="text" placeholder="Entreprise" value={form.entreprise} onChange={set("entreprise")} disabled={busy} autoComplete="organization" />
-          <Field icon={Briefcase} type="text" placeholder="Fonction (ex: Expert-comptable)" value={form.fonction} onChange={set("fonction")} disabled={busy} autoComplete="organization-title" />
+          <Field
+            icon={Mail}
+            type="email"
+            placeholder="Adresse email"
+            value={form.email}
+            onChange={set("email")}
+            disabled={busy}
+            autoComplete="email"
+          />
+          <Field
+            icon={User}
+            type="text"
+            placeholder="Nom d'utilisateur (ex: m.lahlou)"
+            value={form.username}
+            onChange={set("username")}
+            disabled={busy}
+            autoComplete="username"
+          />
+          <Field
+            icon={Building2}
+            type="text"
+            placeholder="Entreprise"
+            value={form.entreprise}
+            onChange={set("entreprise")}
+            disabled={busy}
+            autoComplete="organization"
+          />
+          <Field
+            icon={Briefcase}
+            type="text"
+            placeholder="Fonction (ex: Expert-comptable)"
+            value={form.fonction}
+            onChange={set("fonction")}
+            disabled={busy}
+            autoComplete="organization-title"
+          />
 
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-            <Field icon={Lock} type="password" placeholder="Mot de passe" value={form.password} onChange={set("password")} disabled={busy} autoComplete="new-password" />
-            <Field icon={Lock} type="password" placeholder="Confirmer" value={form.confirm} onChange={set("confirm")} disabled={busy} autoComplete="new-password" />
+            <Field
+              icon={Lock}
+              type="password"
+              placeholder="Mot de passe"
+              value={form.password}
+              onChange={set("password")}
+              disabled={busy}
+              autoComplete="new-password"
+            />
+            <Field
+              icon={Lock}
+              type="password"
+              placeholder="Confirmer"
+              value={form.confirm}
+              onChange={set("confirm")}
+              disabled={busy}
+              autoComplete="new-password"
+            />
           </div>
 
           {error && (
             <p className="flex items-start gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
-              <AlertCircle size={16} className="mt-0.5 shrink-0" />{error}
+              <AlertCircle size={16} className="mt-0.5 shrink-0" />
+              {error}
             </p>
           )}
 
@@ -150,13 +200,23 @@ export default function SignupPage() {
             disabled={busy}
             className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#7B0503] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#b80704] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {busy ? <><Loader2 size={16} className="animate-spin" />Création…</> : "Créer mon compte"}
+            {busy ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Création…
+              </>
+            ) : (
+              "Créer mon compte"
+            )}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Déjà un compte ?{" "}
-          <Link to="/login" className="font-medium text-[#7B0503] hover:underline">
+          <Link
+            to="/login"
+            className="font-medium text-[#7B0503] hover:underline"
+          >
             Se connecter
           </Link>
         </p>

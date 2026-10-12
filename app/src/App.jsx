@@ -24,17 +24,7 @@ export default function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/pending" element={<PendingPage />} />
 
-          {/* Admin */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute adminOnly>
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* App existante, protégée */}
+          {/* App protégée — tout ce qui est ici hérite du MainLayout */}
           <Route
             element={
               <ProtectedRoute>
@@ -47,6 +37,16 @@ export default function App() {
             <Route path="/word" element={<WordgenerationPage />} />
             {/* <Route path="/declaration" element={<DeclarationPage />} /> */}
             {/* <Route path="/configuration" element={<ConfigurationPage />} /> */}
+
+            {/* ⬇️ Admin DANS le layout, protégé par adminOnly ⬇️ */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminPage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

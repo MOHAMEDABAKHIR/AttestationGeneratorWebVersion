@@ -17,6 +17,7 @@ export function AuthProvider({ children }) {
   const loadedUserId = useRef(null);
 
   const fetchProfile = useCallback(async (userId) => {
+    if (!userId) return null;
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
@@ -29,11 +30,23 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
+  /**
+   * Force une lecture fraîche de la session + du profil.
+   * Utilisé par la page /pending (bouton « Vérifier mon statut »).
+   */
   const refreshProfile = useCallback(async () => {
-    const uid = session?.user?.id;
-    if (!uid) return setProfile(null);
-    setProfile(await fetchProfile(uid));
-  }, [session, fetchProfile]);
+    const { data: { session: current } } = await supabase.auth.getSession();
+    const uid = current?.user?.id ?? null;
+    if (!uid) {
+      setSession(null);
+      setProfile(null);
+      return null;
+    }
+    setSession(current);
+    const p = await fetchProfile(uid);
+    setProfile(p);
+    return p;
+  }, [fetchProfile]);
 
   useEffect(() => {
     let mounted = true;
@@ -50,7 +63,6 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // Affiche le loader seulement si on change d'utilisateur
       if (loadedUserId.current !== uid) setLoading(true);
 
       const p = await fetchProfile(uid);
@@ -63,12 +75,11 @@ export function AuthProvider({ children }) {
     supabase.auth.getSession().then(({ data }) => load(data.session));
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
-      // Simple renouvellement du token : pas besoin de recharger le profil
       if (event === "TOKEN_REFRESHED") {
         if (mounted) setSession(s);
         return;
       }
-      // setTimeout : évite d'appeler Supabase dans le callback (deadlock)
+      // setTimeout : évite les deadlocks dans le callback Supabase
       setTimeout(() => load(s), 0);
     });
 
@@ -78,20 +89,16 @@ export function AuthProvider({ children }) {
     };
   }, [fetchProfile]);
 
-  /** Inscription email/mot de passe + données métier. */
   const signUp = async ({ email, password, username, entreprise, fonction }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { username, entreprise, fonction },
-      },
+      options: { data: { username, entreprise, fonction } },
     });
     if (error) throw error;
     return data;
   };
 
-  /** Connexion email/mot de passe. */
   const signIn = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -117,7 +124,8 @@ export function AuthProvider({ children }) {
         loading,
         isAuthenticated: !!session,
         isApproved: profile?.status === "approved",
-        isAdmin: profile?.role === "admin" && profile?.status === "approved",
+        isAdmin:
+          profile?.role === "admin" && profile?.status === "approved",
         signUp,
         signIn,
         signOut,
