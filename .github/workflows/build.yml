@@ -3,6 +3,7 @@ name: Build desktop apps
 on:
   workflow_dispatch:
   push:
+    branches: ["feat/edit-word-file"]
     tags: ["v*"]
 
 jobs:
@@ -20,6 +21,10 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    defaults:
+      run:
+        working-directory: app
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,6 +32,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: app/package-lock.json
 
       - run: npm ci
 
@@ -39,6 +45,6 @@ jobs:
         with:
           name: app-${{ matrix.name }}
           path: |
-            release/*.exe
-            release/*.dmg
+            app/release/*.exe
+            app/release/*.dmg
           if-no-files-found: error
