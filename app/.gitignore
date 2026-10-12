@@ -11,6 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
+app/release/
+app/dist/
+app/node_modules/
+app/.venv/
 
 # Editor directories and files
 .vscode/*
@@ -23,3 +27,10 @@ dist-ssr
 *.sln
 *.sw?
 .env
+*.dmg
+*.exe
+
+# Builds Electron
+app/release/
+app/dist/
+app/node_modules/

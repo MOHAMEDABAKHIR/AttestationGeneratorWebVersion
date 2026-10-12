@@ -1,0 +1,44 @@
+name: Build desktop apps
+
+on:
+  workflow_dispatch:        # bouton « Run workflow » manuel
+  push:
+    tags: ["v*"]            # ou automatiquement quand vous poussez un tag v2.0.1, etc.
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            script: electron:build:win
+            name: windows
+          - os: macos-latest
+            script: electron:build:mac
+            name: mac
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run ${{ matrix.script }}
+        env:
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"   # pas de signature de code sur Mac
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.name }}
+          path: |
+            release/*.exe
+            release/*.dmg
+          if-no-files-found: error
