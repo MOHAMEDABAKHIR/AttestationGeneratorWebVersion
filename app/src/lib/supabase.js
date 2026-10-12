@@ -8,5 +8,13 @@ if (!url || !anonKey) {
 }
 
 export const supabase = createClient(url, anonKey, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+  auth: {
+    // ⬇️ La session est stockée dans sessionStorage :
+    //    - persiste tant que l'onglet est ouvert (même après F5)
+    //    - disparaît dès que l'onglet est fermé
+    storage: window.sessionStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
 });
