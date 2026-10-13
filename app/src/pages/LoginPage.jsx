@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Loader2, AlertCircle, Mail, Lock } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import logomL from "../assets/logomL.png";
+
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -52,10 +54,14 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-[#fafafa] p-4">
       <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fdf2f1]">
-            <span className="text-2xl font-bold text-[#7B0503]">m</span>
+          <div className="mx-auto mb-3 flex items-center justify-center rounded-2xl ">
+            <img
+                        src={logomL}
+                        alt="M Logo"
+                        className="h-auto w-[145px] object-contain"
+                      />
           </div>
-          <h1 className="text-xl font-semibold">Cabinet mLExperts</h1>
+          <h1 className="text-xl font-semibold">Cabinet ML experts</h1>
           <p className="mt-1 text-sm text-gray-500">Connectez-vous à votre compte</p>
         </div>
 
